@@ -72,7 +72,7 @@ app.post('/contact',async (req,res)=>{
     const {username,password} = req.body;
 
     if(!username || !password){
-        return res.status(401).send({error:"All field required!"});
+        return res.status(200).send({error:"All field required!"});
     }
 
     if(username === "admin" && password ==="admin@mail"){
@@ -80,7 +80,7 @@ app.post('/contact',async (req,res)=>{
         res.status(200).send({token});
     }
     else{
-        res.status(401).send({error:"Wrong Admin credidentails!"});
+        res.status(200).send({error:"Wrong Admin credidentails!"});
     }
 })
 
