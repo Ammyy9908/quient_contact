@@ -110,6 +110,12 @@ get('/contact/:type',async (req,res)=>{
     }
     
 }).
+post('/feedback/search',async (req,res)=>{
+   
+    let responses = await Contact.find();
+    responses = responses.filter((response)=>response.first_name.toLowerCase().includes(req.body.key.toLowerCase()))
+    res.status(200).send(responses);
+}).
 get('/contact',async (req,res)=>{
     const contacts = await Contact.find();
     res.status(200).send(contacts)
