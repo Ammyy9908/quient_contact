@@ -4,6 +4,8 @@ const cors = require('cors')
 const mongoose = require('mongoose')
 const jwt = require('jsonwebtoken')
 const Contact = require('./models/Contact')
+const { check, validationResult }
+    = require('express-validator');
 
 
 // connection to db
@@ -17,8 +19,19 @@ const app = express()
 app.use(cors())
 app.use(express.json())
 
-app.post('/contact',async (req,res)=>{
+app.post('/contact',[
+    check('email', 'Invalid Email')
+                    .isEmail().isLength({ min: 10, max: 30 }),
+   
+],async (req,res)=>{
     const {email,fname,lname,message} = req.body;
+
+    const errors =validationResult(req);
+
+
+    if(!errors.isEmpty()){
+        return res.status(200).send({error:"😞 Invalid Email address"})
+    }
 
  
 
@@ -54,9 +67,9 @@ app.post('/contact',async (req,res)=>{
         transporter.sendMail(mailOptions,(err,info)=>{
             if(err){
                 console.log(err)
-                return res.status(500).send({error:"Error in Sending Message,Try Again!"})
+                return res.status(200).send({error:"😩 Error in Sending Message,Try Again!"})
             }
-            res.status(200).send({message:"Thank you for contacting us!"})
+            res.status(200).send({message:"🎉 Thank you for contacting us!"})
     
          })
       })
@@ -64,12 +77,46 @@ app.post('/contact',async (req,res)=>{
       
 
 
-}).get('/contact',async (req,res)=>{
+}).delete('/contact/:id',async (req,res)=>{
+    const {id} = req.params;
+    console.log(id);
+
+    Contact.deleteOne({_id:id}).then(async ()=>{
+        const responses = await Contact.find()
+        res.status(200).send({contacts:responses})
+    })
+}).
+get('/contact/:type',async (req,res)=>{
+    const {type} = req.params;
+    if(type==="fname"){
+        const responses = await Contact.find().sort({'first_name':1})
+        res.status(200).send(responses)
+    }
+    else if(type==="lname"){
+        const responses = await Contact.find().sort({'last_name':1})
+        res.status(200).send(responses)
+    }
+    else if(type==="email"){
+        const responses = await Contact.find().sort({'email':1})
+        res.status(200).send(responses)
+    }
+    else if(type==="message"){
+        const responses = await Contact.find().sort({'message':1})
+        res.status(200).send(responses)
+    }
+    else{
+        const responses = await Contact.find()
+        res.status(200).send(responses)
+    }
+    
+}).
+get('/contact',async (req,res)=>{
     const contacts = await Contact.find();
     res.status(200).send(contacts)
 })
 .post('/admin/login',async (req,res)=>{
     const {username,password} = req.body;
+    
 
     if(!username || !password){
         return res.status(200).send({error:"All field required!"});
